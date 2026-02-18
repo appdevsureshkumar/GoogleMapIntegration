@@ -98,3 +98,30 @@ extension BooksInfoService {
         let name: String
     }
 }
+
+final class UserUsageHistory {
+    private var usersUsage: [BookItemResponse] = []
+
+    func userUsageHistory(manualInput: BookItemResponse) async throws -> [BookItemResponse] {
+        try await Task.sleep(nanoseconds: 350_000_000)
+        usersUsage.append(manualInput)
+        return usersUsage
+    }
+}
+
+extension UserUsageHistory {
+    
+    struct BookItemResponse: Decodable {
+        let locationA: BookItem
+        let locationB: BookItem
+        let price: Double
+
+    }
+    
+    struct BookItem: Decodable {
+        let latitude: Double
+        let longitude: Double
+        let aqi: Int
+        let name: String
+    }
+}

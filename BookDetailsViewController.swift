@@ -71,7 +71,37 @@ final class BookDetailsViewController: UIViewController {
     }
 
     @objc private func handleContinue() {
-        let viewController = FinalViewController()
+        let historyItem = UserUsageHistory.BookItemResponse(
+            locationA: UserUsageHistory.BookItem(
+                latitude: response.locationA.latitude,
+                longitude: response.locationA.longitude,
+                aqi: response.locationA.airQuality,
+                name: response.locationA.name
+            ),
+            locationB: UserUsageHistory.BookItem(
+                latitude: response.locationB.latitude,
+                longitude: response.locationB.longitude,
+                aqi: response.locationB.airQuality,
+                name: response.locationB.name
+            ),
+            price: response.price
+        )
+        let itemOne = UserUsageHistory.BookItemResponse(
+            locationA: UserUsageHistory.BookItem(
+                latitude: 36.564,
+                longitude: 127.001,
+                aqi: 30,
+                name: "서울 A 위치"
+            ),
+            locationB: UserUsageHistory.BookItem(
+                latitude: 36.567,
+                longitude: 127.0,
+                aqi: 40,
+                name: "서울 B 위치"
+            ),
+            price: 10000
+        )
+        let viewController = FinalViewController(items: [historyItem, itemOne])
         navigationController?.pushViewController(viewController, animated: true)
     }
 
