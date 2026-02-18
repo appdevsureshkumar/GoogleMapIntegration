@@ -22,8 +22,10 @@ class ViewController: UIViewController {
     private var labelA = UILabel()
     private var labelB = UILabel()
     private var buttonV = UIButton()
-    private var locationInfo: (address: String, airQuality: Int)?
+    private var locationInfoA: (address: String, airQuality: Int)?
+    private var locationInfoB: (address: String, airQuality: Int)?
     private var hasSetA = false
+    private var hasSetB = false
 
     private lazy var vstack: UIStackView = {
         let vstack = UIStackView()
@@ -130,7 +132,10 @@ class ViewController: UIViewController {
         }
     }
     
-    private func fetchLocationAndAir(for coordinate: CLLocationCoordinate2D) {
+    private func fetchLocationAndAir(
+        for coordinate: CLLocationCoordinate2D,
+        onSuccess: @escaping (_ address: String, _ airQuality: Int) -> Void
+    ) {
         Task { [weak self] in
             guard let self else { return }
             do {
@@ -138,10 +143,7 @@ class ViewController: UIViewController {
                 let airQuality = currentAQI ?? 0
 
                 await MainActor.run {
-                    self.locationInfo = (address: address, airQuality: airQuality)
-                    self.labelA.text = address
-                    self.buttonV.setTitle("Set B", for: .normal)
-                    self.hasSetA = true
+                    onSuccess(address, airQuality)
                 }
             } catch {
                 
@@ -153,10 +155,16 @@ class ViewController: UIViewController {
         labelA.text = "A Label"
         labelA.textColor = .white
         labelA.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        labelA.isUserInteractionEnabled = true
+        let labelATap = UITapGestureRecognizer(target: self, action: #selector(handleLabelATap))
+        labelA.addGestureRecognizer(labelATap)
 
         labelB.text = "B Label"
         labelB.textColor = .white
         labelB.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        labelB.isUserInteractionEnabled = true
+        let labelBTap = UITapGestureRecognizer(target: self, action: #selector(handleLabelBTap))
+        labelB.addGestureRecognizer(labelBTap)
 
         vstack.addArrangedSubview(labelA)
         vstack.addArrangedSubview(labelB)
@@ -193,9 +201,42 @@ class ViewController: UIViewController {
     }
     
     @objc private func buttonVAction() {
-        guard hasSetA == false else { return }
         let coordinate = mapView.camera.target
-        fetchLocationAndAir(for: coordinate)
+        if hasSetA == false {
+            fetchLocationAndAir(for: coordinate) { [weak self] address, airQuality in
+                guard let self else { return }
+                self.locationInfoA = (address: address, airQuality: airQuality)
+                self.labelA.text = address
+                self.buttonV.setTitle("Set B", for: .normal)
+                self.hasSetA = true
+            }
+            return
+        }
+
+        if hasSetB == false {
+            fetchLocationAndAir(for: coordinate) { [weak self] address, airQuality in
+                guard let self else { return }
+                self.locationInfoB = (address: address, airQuality: airQuality)
+                self.labelB.text = address
+                self.buttonV.setTitle("Book", for: .normal)
+                self.hasSetB = true
+            }
+        }
+    }
+
+    @objc private func handleLabelATap() {
+        guard let locationInfoA else { return }
+        navigateToDetails(address: locationInfoA.address, airQuality: locationInfoA.airQuality)
+    }
+
+    @objc private func handleLabelBTap() {
+        guard let locationInfoB else { return }
+        navigateToDetails(address: locationInfoB.address, airQuality: locationInfoB.airQuality)
+    }
+
+    private func navigateToDetails(address: String, airQuality: Int) {
+        let viewController = DetailsViewController(address: address, airQuality: airQuality)
+        navigationController?.pushViewController(viewController, animated: true)
     }
 }
 
@@ -214,4 +255,3 @@ extension ViewController: GMSMapViewDelegate {
         updateAirQuality(for: position.target)
     }
 }
-
