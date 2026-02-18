@@ -17,17 +17,19 @@ class ViewController: UIViewController {
     private let airQualityLabel = UILabel()
     private let airQualityService = AirQualityService()
     private let locationInfoService = LocationInfoService()
+    private let booksInfoService = BooksInfoService()
     private var lastAQILocation: CLLocation?
     private var currentAQI: Int?
     private var labelA = UILabel()
     private var labelB = UILabel()
     private var buttonV = UIButton()
-    private var locationInfoA: (address: String, airQuality: Int)?
-    private var locationInfoB: (address: String, airQuality: Int)?
+    private var locationInfoA: (address: String, airQuality: Int, coordinate: CLLocationCoordinate2D)?
+    private var locationInfoB: (address: String, airQuality: Int, coordinate: CLLocationCoordinate2D)?
     private var nicknameA: String?
     private var nicknameB: String?
     private var hasSetA = false
     private var hasSetB = false
+    private var shouldResetOnAppear = false
     private enum LocationSlot {
         case a
         case b
@@ -64,6 +66,14 @@ class ViewController: UIViewController {
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        if shouldResetOnAppear {
+            resetSelections()
+            shouldResetOnAppear = false
+        }
     }
 
     private func setupMap() {
@@ -140,7 +150,7 @@ class ViewController: UIViewController {
     
     private func fetchLocationAndAir(
         for coordinate: CLLocationCoordinate2D,
-        onSuccess: @escaping (_ address: String, _ airQuality: Int) -> Void
+        onSuccess: @escaping (_ address: String, _ airQuality: Int, _ coordinate: CLLocationCoordinate2D) -> Void
     ) {
         Task { [weak self] in
             guard let self else { return }
@@ -149,7 +159,7 @@ class ViewController: UIViewController {
                 let airQuality = currentAQI ?? 0
 
                 await MainActor.run {
-                    onSuccess(address, airQuality)
+                    onSuccess(address, airQuality, coordinate)
                 }
             } catch {
                 
@@ -209,9 +219,9 @@ class ViewController: UIViewController {
     @objc private func buttonVAction() {
         let coordinate = mapView.camera.target
         if hasSetA == false {
-            fetchLocationAndAir(for: coordinate) { [weak self] address, airQuality in
+            fetchLocationAndAir(for: coordinate) { [weak self] address, airQuality, coordinate in
                 guard let self else { return }
-                self.locationInfoA = (address: address, airQuality: airQuality)
+                self.locationInfoA = (address: address, airQuality: airQuality, coordinate: coordinate)
                 self.labelA.text = address
                 self.buttonV.setTitle("Set B", for: .normal)
                 self.hasSetA = true
@@ -220,12 +230,45 @@ class ViewController: UIViewController {
         }
 
         if hasSetB == false {
-            fetchLocationAndAir(for: coordinate) { [weak self] address, airQuality in
+            fetchLocationAndAir(for: coordinate) { [weak self] address, airQuality, coordinate in
                 guard let self else { return }
-                self.locationInfoB = (address: address, airQuality: airQuality)
+                self.locationInfoB = (address: address, airQuality: airQuality, coordinate: coordinate)
                 self.labelB.text = address
                 self.buttonV.setTitle("Book", for: .normal)
                 self.hasSetB = true
+            }
+            return
+        }
+
+        guard let locationInfoA, let locationInfoB else { return }
+        let request = BooksInfoService.BookRequest(
+            locationA: .init(
+                latitude: locationInfoA.coordinate.latitude,
+                longitude: locationInfoA.coordinate.longitude,
+                airQuality: locationInfoA.airQuality,
+                name: nicknameA ?? locationInfoA.address
+            ),
+            locationB: .init(
+                latitude: locationInfoB.coordinate.latitude,
+                longitude: locationInfoB.coordinate.longitude,
+                airQuality: locationInfoB.airQuality,
+                name: nicknameB ?? locationInfoB.address
+            )
+        )
+
+        buttonV.isEnabled = false
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                let response = try await booksInfoService.bookLocations(request)
+                await MainActor.run {
+                    self.buttonV.isEnabled = true
+                    self.showBookDetails(response)
+                }
+            } catch {
+                await MainActor.run {
+                    self.buttonV.isEnabled = true
+                }
             }
         }
     }
@@ -254,6 +297,26 @@ class ViewController: UIViewController {
             }
         }
         navigationController?.pushViewController(viewController, animated: true)
+    }
+
+    private func showBookDetails(_ response: BooksInfoService.BookResponse) {
+        let viewController = BookDetailsViewController(response: response)
+        viewController.onBackToRoot = { [weak self] in
+            self?.shouldResetOnAppear = true
+        }
+        navigationController?.pushViewController(viewController, animated: true)
+    }
+
+    private func resetSelections() {
+        locationInfoA = nil
+        locationInfoB = nil
+        nicknameA = nil
+        nicknameB = nil
+        hasSetA = false
+        hasSetB = false
+        labelA.text = "A Label"
+        labelB.text = "B Label"
+        buttonV.setTitle("Set A", for: .normal)
     }
 }
 

@@ -7,12 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		932DAD6C2F46279700397B5D /* BookDetailsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 932DAD6B2F46279700397B5D /* BookDetailsViewController.swift */; };
+		932DAD6E2F46279D00397B5D /* FinalViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 932DAD6D2F46279D00397B5D /* FinalViewController.swift */; };
 		93CF055B2F45C3FB006E3343 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 93CF055A2F45C3FB006E3343 /* Alamofire */; };
 		93CF055E2F45C47C006E3343 /* GoogleMaps in Frameworks */ = {isa = PBXBuildFile; productRef = 93CF055D2F45C47C006E3343 /* GoogleMaps */; };
 		93CF05602F45DA94006E3343 /* AirQualityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93CF055F2F45DA94006E3343 /* AirQualityService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		932DAD6B2F46279700397B5D /* BookDetailsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookDetailsViewController.swift; sourceTree = "<group>"; };
+		932DAD6D2F46279D00397B5D /* FinalViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinalViewController.swift; sourceTree = "<group>"; };
 		93CF055F2F45DA94006E3343 /* AirQualityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirQualityService.swift; sourceTree = "<group>"; };
 		93DB13302F45C2660033EDD4 /* TATATask.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TATATask.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -57,6 +61,8 @@
 				93DB13322F45C2660033EDD4 /* TATATask */,
 				93DB13312F45C2660033EDD4 /* Products */,
 				93CF055F2F45DA94006E3343 /* AirQualityService.swift */,
+				932DAD6B2F46279700397B5D /* BookDetailsViewController.swift */,
+				932DAD6D2F46279D00397B5D /* FinalViewController.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -149,6 +155,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				93CF05602F45DA94006E3343 /* AirQualityService.swift in Sources */,
+				932DAD6E2F46279D00397B5D /* FinalViewController.swift in Sources */,
+				932DAD6C2F46279700397B5D /* BookDetailsViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
