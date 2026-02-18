@@ -16,7 +16,32 @@ class ViewController: UIViewController {
     private let locationManager = CLLocationManager()
     private let airQualityLabel = UILabel()
     private let airQualityService = AirQualityService()
+    private let locationInfoService = LocationInfoService()
     private var lastAQILocation: CLLocation?
+    private var currentAQI: Int?
+    private var labelA = UILabel()
+    private var labelB = UILabel()
+    private var buttonV = UIButton()
+    private var locationInfo: (address: String, airQuality: Int)?
+    private var hasSetA = false
+
+    private lazy var vstack: UIStackView = {
+        let vstack = UIStackView()
+        vstack.translatesAutoresizingMaskIntoConstraints = false
+        vstack.axis = .vertical
+        vstack.spacing = 5
+        return vstack
+    }()
+    
+    private lazy var hStack: UIStackView = {
+        let hstack = UIStackView()
+        hstack.translatesAutoresizingMaskIntoConstraints = false
+        hstack.axis = .horizontal
+        hstack.spacing = 10
+        hstack.alignment = .center
+        hstack.distribution = .fill
+        return hstack
+    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,6 +50,7 @@ class ViewController: UIViewController {
         setupMap()
         setupLocationMarker()
         setupAirQualityLabel()
+        setupBottomLabels()
 
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
@@ -93,14 +119,83 @@ class ViewController: UIViewController {
             do {
                 let aqi = try await airQualityService.fetchAQI(for: coordinate)
                 await MainActor.run {
+                    self.currentAQI = aqi
                     self.airQualityLabel.text = "AQI \(aqi)"
                 }
             } catch {
                 await MainActor.run {
-                    self.airQualityLabel.text = "AQI --"
+                    self.airQualityLabel.text = "AQI--"
                 }
             }
         }
+    }
+    
+    private func fetchLocationAndAir(for coordinate: CLLocationCoordinate2D) {
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                let address = try await locationInfoService.fetchCityName(for: coordinate) ?? "Unknown"
+                let airQuality = currentAQI ?? 0
+
+                await MainActor.run {
+                    self.locationInfo = (address: address, airQuality: airQuality)
+                    self.labelA.text = address
+                    self.buttonV.setTitle("Set B", for: .normal)
+                    self.hasSetA = true
+                }
+            } catch {
+                
+            }
+        }
+    }
+
+    private func setupBottomLabels() {
+        labelA.text = "A Label"
+        labelA.textColor = .white
+        labelA.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+
+        labelB.text = "B Label"
+        labelB.textColor = .white
+        labelB.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+
+        vstack.addArrangedSubview(labelA)
+        vstack.addArrangedSubview(labelB)
+
+        buttonV.setTitle("Set A", for: .normal)
+        buttonV.setTitleColor(.white, for: .normal)
+        buttonV.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.9)
+        buttonV.layer.cornerRadius = 10
+        buttonV.contentEdgeInsets = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
+        buttonV.addTarget(self, action: #selector(buttonVAction), for: .touchUpInside)
+
+        hStack.addArrangedSubview(vstack)
+        hStack.addArrangedSubview(buttonV)
+
+        let containerView = UIView()
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.backgroundColor = UIColor.black.withAlphaComponent(0.7)
+        containerView.layer.cornerRadius = 12
+        containerView.clipsToBounds = true
+
+        containerView.addSubview(hStack)
+        view.addSubview(containerView)
+
+        NSLayoutConstraint.activate([
+            hStack.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 12),
+            hStack.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
+            hStack.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
+            hStack.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -12),
+
+            containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            containerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            containerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -12)
+        ])
+    }
+    
+    @objc private func buttonVAction() {
+        guard hasSetA == false else { return }
+        let coordinate = mapView.camera.target
+        fetchLocationAndAir(for: coordinate)
     }
 }
 
@@ -112,9 +207,10 @@ extension ViewController: CLLocationManagerDelegate {
         updateAirQuality(for: lastLocation.coordinate)
     }
 }
+
 extension ViewController: GMSMapViewDelegate {
     func mapView(_ mapView: GMSMapView, idleAt position: GMSCameraPosition) {
-        locationMarker.position = position.target
+        locationMarker.position = position.target // Camera centered coordinate
         updateAirQuality(for: position.target)
     }
 }
