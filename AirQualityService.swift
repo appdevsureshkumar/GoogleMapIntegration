@@ -67,3 +67,44 @@ extension LocationInfoService {
         let city: String?
     }
 }
+
+final class BooksInfoService {
+    private let session: URLSession
+    private let baseURL: URL
+
+    init(session: URLSession = .shared, baseURL: URL = URL(string: "https://example.com")!) {
+        self.session = session
+        self.baseURL = baseURL
+    }
+
+    func bookLocations(_ requestBody: BookRequest) async throws {
+        let url = baseURL.appendingPathComponent("books")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(requestBody)
+
+        let (_, response) = try await session.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200...299).contains(httpResponse.statusCode) else {
+            throw BooksError.invalidResponse
+        }
+    }
+}
+
+extension BooksInfoService {
+    struct BookRequest: Encodable {
+        let locationA: LocationPayload
+        let locationB: LocationPayload
+    }
+
+    struct LocationPayload: Encodable {
+        let address: String
+        let airQuality: Int
+        let nickname: String?
+    }
+
+    enum BooksError: Error {
+        case invalidResponse
+    }
+}

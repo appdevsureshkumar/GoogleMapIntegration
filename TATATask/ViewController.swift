@@ -24,8 +24,14 @@ class ViewController: UIViewController {
     private var buttonV = UIButton()
     private var locationInfoA: (address: String, airQuality: Int)?
     private var locationInfoB: (address: String, airQuality: Int)?
+    private var nicknameA: String?
+    private var nicknameB: String?
     private var hasSetA = false
     private var hasSetB = false
+    private enum LocationSlot {
+        case a
+        case b
+    }
 
     private lazy var vstack: UIStackView = {
         let vstack = UIStackView()
@@ -226,16 +232,27 @@ class ViewController: UIViewController {
 
     @objc private func handleLabelATap() {
         guard let locationInfoA else { return }
-        navigateToDetails(address: locationInfoA.address, airQuality: locationInfoA.airQuality)
+        navigateToDetails(address: ((nicknameA == nil ? locationInfoA.address : nicknameA) ?? locationInfoA.address), airQuality: locationInfoA.airQuality, slot: .a)
     }
 
     @objc private func handleLabelBTap() {
         guard let locationInfoB else { return }
-        navigateToDetails(address: locationInfoB.address, airQuality: locationInfoB.airQuality)
+        navigateToDetails(address: (nicknameB == nil ? locationInfoB.address : nicknameB) ?? locationInfoB.address, airQuality: locationInfoB.airQuality, slot: .b)
     }
 
-    private func navigateToDetails(address: String, airQuality: Int) {
+    private func navigateToDetails(address: String, airQuality: Int, slot: LocationSlot) {
         let viewController = DetailsViewController(address: address, airQuality: airQuality)
+        viewController.completionNickName = { [weak self] nickName in
+            guard let self else { return }
+            switch slot {
+            case .a:
+                self.nicknameA = nickName
+                self.labelA.text = nickName ?? address
+            case .b:
+                self.nicknameB = nickName
+                self.labelB.text = nickName ?? address
+            }
+        }
         navigationController?.pushViewController(viewController, animated: true)
     }
 }
