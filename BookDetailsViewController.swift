@@ -91,13 +91,13 @@ final class BookDetailsViewController: UIViewController {
                 latitude: 36.564,
                 longitude: 127.001,
                 aqi: 30,
-                name: "서울 A 위치"
+                name: "Default location name one"
             ),
             locationB: UserUsageHistory.BookItem(
                 latitude: 36.567,
                 longitude: 127.0,
                 aqi: 40,
-                name: "서울 B 위치"
+                name: "Default location name two"
             ),
             price: 10000
         )

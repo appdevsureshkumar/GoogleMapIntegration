@@ -1,12 +1,24 @@
 import Foundation
 import CoreLocation
+import Alamofire
+
+struct AQICNResponse: Codable, Sendable {
+    let status: String
+    let data: AQIData?
+}
+
+struct AQIData: Codable, Sendable {
+    let aqi: Int?
+}
+
+enum AQIError: Error {
+    case invalidResponse
+}
 
 final class AirQualityService {
-    private let session: URLSession
     private let token: String
 
-    init(session: URLSession = .shared, token: String = "c502f7ef476a3957d755b7adc855edf7f9c0100e") {
-        self.session = session
+    init(token: String = "c502f7ef476a3957d755b7adc855edf7f9c0100e") {
         self.token = token
     }
 
@@ -18,7 +30,16 @@ final class AirQualityService {
             throw URLError(.badURL)
         }
 
-        let (data, _) = try await session.data(from: url)
+        let data = try await withCheckedThrowingContinuation { continuation in
+            AF.request(url).responseData { result in
+                switch result.result {
+                case .success(let data):
+                    continuation.resume(returning: data)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
         let response = try JSONDecoder().decode(AQICNResponse.self, from: data)
         guard response.status == "ok", let aqi = response.data?.aqi else {
             throw AQIError.invalidResponse
@@ -28,42 +49,30 @@ final class AirQualityService {
     }
 }
 
-extension AirQualityService {
-    struct AQICNResponse: Codable {
-        let status: String
-        let data: AQIData?
-    }
-
-    struct AQIData: Codable {
-        let aqi: Int?
-    }
-
-    enum AQIError: Error {
-        case invalidResponse
-    }
-}
-
 final class LocationInfoService {
-    private let session: URLSession
-
-    init(session: URLSession = .shared) {
-        self.session = session
-    }
-
     func fetchCityName(for coordinate: CLLocationCoordinate2D) async throws -> String? {
         let urlString = "https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=\(coordinate.latitude)&longitude=\(coordinate.longitude)&localityLanguage=en"
         guard let url = URL(string: urlString) else {
             throw URLError(.badURL)
         }
 
-        let (data, _) = try await session.data(from: url)
+        let data = try await withCheckedThrowingContinuation { continuation in
+            AF.request(url).responseData { result in
+                switch result.result {
+                case .success(let data):
+                    continuation.resume(returning: data)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
         let response = try JSONDecoder().decode(BigDataCloudResponse.self, from: data)
         return response.city
     }
 }
 
 extension LocationInfoService {
-    struct BigDataCloudResponse: Codable {
+    struct BigDataCloudResponse: Codable, Sendable {
         let city: String?
     }
 }
