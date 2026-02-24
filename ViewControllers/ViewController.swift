@@ -14,14 +14,14 @@ class ViewController: UIViewController {
     private let mapView = GMSMapView()
     private let locationMarker = GMSMarker()
     private let locationManager = CLLocationManager()
-    private let airQualityLabel = UILabel()
+    private let airQualityLabel = PaddedLabel()
     private let airQualityService = AirQualityService()
     private let locationInfoService = LocationInfoService()
     private let booksInfoService = BooksInfoService()
     private var lastAQILocation: CLLocation?
     private var currentAQI: Int?
-    private var labelA = UILabel()
-    private var labelB = UILabel()
+    private var labelA = PaddedLabel()
+    private var labelB = PaddedLabel()
     private var buttonV = UIButton()
     private var locationInfoA: (address: String, airQuality: Int, coordinate: CLLocationCoordinate2D)?
     private var locationInfoB: (address: String, airQuality: Int, coordinate: CLLocationCoordinate2D)?
@@ -39,7 +39,8 @@ class ViewController: UIViewController {
         let vstack = UIStackView()
         vstack.translatesAutoresizingMaskIntoConstraints = false
         vstack.axis = .vertical
-        vstack.spacing = 5
+        vstack.spacing = 10
+        vstack.distribution = .fillEqually
         return vstack
     }()
     
@@ -47,11 +48,25 @@ class ViewController: UIViewController {
         let hstack = UIStackView()
         hstack.translatesAutoresizingMaskIntoConstraints = false
         hstack.axis = .horizontal
-        hstack.spacing = 10
-        hstack.alignment = .center
+        hstack.spacing = 12
+        hstack.alignment = .fill
         hstack.distribution = .fill
         return hstack
     }()
+
+    private final class PaddedLabel: UILabel {
+        var textInsets = UIEdgeInsets(top: 0, left: 12, bottom: 0, right: 12)
+
+        override func drawText(in rect: CGRect) {
+            super.drawText(in: rect.inset(by: textInsets))
+        }
+
+        override var intrinsicContentSize: CGSize {
+            let size = super.intrinsicContentSize
+            return CGSize(width: size.width + textInsets.left + textInsets.right,
+                          height: size.height + textInsets.top + textInsets.bottom)
+        }
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -107,22 +122,17 @@ class ViewController: UIViewController {
 
     private func setupAirQualityLabel() {
         airQualityLabel.translatesAutoresizingMaskIntoConstraints = false
-        airQualityLabel.backgroundColor = UIColor.black.withAlphaComponent(0.7)
-        airQualityLabel.textColor = .white
-        airQualityLabel.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
-        airQualityLabel.textAlignment = .center
-        airQualityLabel.layer.cornerRadius = 8
-        airQualityLabel.clipsToBounds = true
-        airQualityLabel.text = "AQI --"
-
-        view.addSubview(airQualityLabel)
+        airQualityLabel.textColor = .secondaryLabel
+        airQualityLabel.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        airQualityLabel.textAlignment = .right
+        airQualityLabel.text = "aqi --"
 
         NSLayoutConstraint.activate([
-            airQualityLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 12),
-            airQualityLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12),
-            airQualityLabel.heightAnchor.constraint(equalToConstant: 32),
-            airQualityLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 80)
+            airQualityLabel.heightAnchor.constraint(equalToConstant: 24),
+            airQualityLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 70)
         ])
+
+        navigationItem.rightBarButtonItem = UIBarButtonItem(customView: airQualityLabel)
     }
 
     private func updateAirQuality(for coordinate: CLLocationCoordinate2D) {
@@ -138,11 +148,11 @@ class ViewController: UIViewController {
                 let aqi = try await airQualityService.fetchAQI(for: coordinate)
                 await MainActor.run {
                     self.currentAQI = aqi
-                    self.airQualityLabel.text = "AQI \(aqi)"
+                    self.airQualityLabel.text = "aqi \(aqi)"
                 }
             } catch {
                 await MainActor.run {
-                    self.airQualityLabel.text = "AQI--"
+                    self.airQualityLabel.text = "aqi --"
                 }
             }
         }
@@ -168,16 +178,24 @@ class ViewController: UIViewController {
     }
 
     private func setupBottomLabels() {
-        labelA.text = "A Label"
-        labelA.textColor = .white
+        labelA.text = "A"
+        labelA.textColor = .black
         labelA.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        labelA.backgroundColor = .systemGray5
+        labelA.layer.cornerRadius = 10
+        labelA.clipsToBounds = true
+        labelA.textAlignment = .left
         labelA.isUserInteractionEnabled = true
         let labelATap = UITapGestureRecognizer(target: self, action: #selector(handleLabelATap))
         labelA.addGestureRecognizer(labelATap)
 
-        labelB.text = "B Label"
-        labelB.textColor = .white
+        labelB.text = "B"
+        labelB.textColor = .black
         labelB.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        labelB.backgroundColor = .systemGray5
+        labelB.layer.cornerRadius = 10
+        labelB.clipsToBounds = true
+        labelB.textAlignment = .left
         labelB.isUserInteractionEnabled = true
         let labelBTap = UITapGestureRecognizer(target: self, action: #selector(handleLabelBTap))
         labelB.addGestureRecognizer(labelBTap)
@@ -185,11 +203,10 @@ class ViewController: UIViewController {
         vstack.addArrangedSubview(labelA)
         vstack.addArrangedSubview(labelB)
 
-        buttonV.setTitle("Set A", for: .normal)
-        buttonV.setTitleColor(.white, for: .normal)
-        buttonV.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.9)
-        buttonV.layer.cornerRadius = 10
-        buttonV.contentEdgeInsets = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
+        buttonV.setTitle("V", for: .normal)
+        buttonV.setTitleColor(.black, for: .normal)
+        buttonV.backgroundColor = .systemYellow
+        buttonV.layer.cornerRadius = 12
         buttonV.addTarget(self, action: #selector(buttonVAction), for: .touchUpInside)
 
         hStack.addArrangedSubview(vstack)
@@ -197,18 +214,23 @@ class ViewController: UIViewController {
 
         let containerView = UIView()
         containerView.translatesAutoresizingMaskIntoConstraints = false
-        containerView.backgroundColor = UIColor.black.withAlphaComponent(0.7)
-        containerView.layer.cornerRadius = 12
+        containerView.backgroundColor = .white
+        containerView.layer.cornerRadius = 16
         containerView.clipsToBounds = true
 
         containerView.addSubview(hStack)
         view.addSubview(containerView)
 
         NSLayoutConstraint.activate([
-            hStack.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 12),
-            hStack.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
-            hStack.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
-            hStack.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -12),
+            hStack.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 16),
+            hStack.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
+            hStack.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
+            hStack.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -16),
+
+            labelA.heightAnchor.constraint(equalToConstant: 44),
+            labelB.heightAnchor.constraint(equalToConstant: 44),
+            buttonV.widthAnchor.constraint(equalToConstant: 64),
+            buttonV.heightAnchor.constraint(equalTo: vstack.heightAnchor),
 
             containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             containerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
@@ -284,7 +306,7 @@ class ViewController: UIViewController {
     }
 
     private func navigateToDetails(address: String, airQuality: Int, slot: LocationSlot) {
-        let viewController = DetailsViewController(address: address, airQuality: airQuality)
+        let viewController = DetailsViewController(address: address, airQuality: airQuality, slotTitle: slot == .a ? "A" : "B")
         viewController.completionNickName = { [weak self] nickName in
             guard let self else { return }
             switch slot {
@@ -316,7 +338,7 @@ class ViewController: UIViewController {
         hasSetB = false
         labelA.text = "A Label"
         labelB.text = "B Label"
-        buttonV.setTitle("Set A", for: .normal)
+        buttonV.setTitle("V", for: .normal)
     }
 }
 

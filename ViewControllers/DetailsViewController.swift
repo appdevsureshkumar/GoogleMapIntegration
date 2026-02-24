@@ -3,18 +3,21 @@ import UIKit
 final class DetailsViewController: UIViewController {
     private let address: String
     private let airQuality: Int
+    private let slotTitle: String
     private let maxNicknameLength = 20
 
+    private let slotLabel = UILabel()
     private let addressLabel = UILabel()
-    private let airQualityLabel = UILabel()
+    private let airQualityTitleLabel = UILabel()
+    private let airQualityValueLabel = UILabel()
     private let nickNameTextField = UITextField()
     private let nickNameUpdateButton = UIButton()
-    private let nickNameSkipButton = UIButton()
     public var completionNickName: ((String?) -> Void)? = nil
 
-    init(address: String, airQuality: Int) {
+    init(address: String, airQuality: Int, slotTitle: String) {
         self.address = address
         self.airQuality = airQuality
+        self.slotTitle = slotTitle
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -26,65 +29,82 @@ final class DetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        title = "Details"
+
+        slotLabel.translatesAutoresizingMaskIntoConstraints = false
+        slotLabel.text = slotTitle
+        slotLabel.textColor = .label
+        slotLabel.font = UIFont.systemFont(ofSize: 20, weight: .bold)
 
         addressLabel.translatesAutoresizingMaskIntoConstraints = false
         addressLabel.text = address
-        addressLabel.textAlignment = .center
+        addressLabel.textColor = .label
+        addressLabel.textAlignment = .left
         addressLabel.font = UIFont.systemFont(ofSize: 20, weight: .semibold)
         addressLabel.numberOfLines = 0
 
-        airQualityLabel.translatesAutoresizingMaskIntoConstraints = false
-        airQualityLabel.text = "AQI \(airQuality)"
-        airQualityLabel.textAlignment = .center
-        airQualityLabel.font = UIFont.systemFont(ofSize: 18, weight: .regular)
+        airQualityTitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        airQualityTitleLabel.text = "aqi"
+        airQualityTitleLabel.textColor = .black
+        airQualityTitleLabel.font = UIFont.systemFont(ofSize: 16, weight: .regular)
 
-        let stackView = UIStackView(arrangedSubviews: [addressLabel, airQualityLabel])
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        stackView.axis = .vertical
-        stackView.spacing = 12
-        stackView.alignment = .center
+        airQualityValueLabel.translatesAutoresizingMaskIntoConstraints = false
+        airQualityValueLabel.text = "\(airQuality)"
+        airQualityValueLabel.textColor = .label
+        airQualityValueLabel.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
 
-        view.addSubview(stackView)
+        let titleStack = UIStackView(arrangedSubviews: [slotLabel, addressLabel])
+        titleStack.translatesAutoresizingMaskIntoConstraints = false
+        titleStack.axis = .horizontal
+        titleStack.spacing = 12
+        titleStack.alignment = .center
+
+        let airStack = UIStackView(arrangedSubviews: [airQualityTitleLabel, airQualityValueLabel])
+        airStack.translatesAutoresizingMaskIntoConstraints = false
+        airStack.axis = .horizontal
+        airStack.spacing = 15
+        airStack.alignment = .center
+       // airStack.distribution = .equalSpacing
+
+        view.addSubview(titleStack)
+        view.addSubview(airStack)
 
         NSLayoutConstraint.activate([
-            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            titleStack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            titleStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            titleStack.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -16),
+
+            airStack.topAnchor.constraint(equalTo: titleStack.bottomAnchor, constant: 8),
+            airStack.leadingAnchor.constraint(equalTo: addressLabel.leadingAnchor),
+            airStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
         ])
         
         nickNameTextField.translatesAutoresizingMaskIntoConstraints = false
         nickNameTextField.placeholder = "nickname"
         nickNameTextField.borderStyle = .roundedRect
         nickNameTextField.delegate = self
+        nickNameTextField.backgroundColor = .white
         
-        nickNameUpdateButton.setTitle("Update", for: .normal)
-        nickNameUpdateButton.setTitleColor(.white, for: .normal)
-        nickNameUpdateButton.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.9)
+        nickNameUpdateButton.setTitle("V", for: .normal)
+        nickNameUpdateButton.setTitleColor(.black, for: .normal)
+        nickNameUpdateButton.backgroundColor = .systemYellow
         nickNameUpdateButton.layer.cornerRadius = 10
-        nickNameUpdateButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
         nickNameUpdateButton.addTarget(self, action: #selector(updateNickName), for: .touchUpInside)
 
-        nickNameSkipButton.setTitle("Skip", for: .normal)
-        nickNameSkipButton.setTitleColor(.white, for: .normal)
-        nickNameSkipButton.backgroundColor = UIColor.systemGray.withAlphaComponent(0.9)
-        nickNameSkipButton.layer.cornerRadius = 10
-        nickNameSkipButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
-        nickNameSkipButton.addTarget(self, action: #selector(skipNickName), for: .touchUpInside)
-
-        let vstack = UIStackView(arrangedSubviews: [nickNameTextField, nickNameUpdateButton, nickNameSkipButton])
+        let vstack = UIStackView(arrangedSubviews: [nickNameTextField, nickNameUpdateButton])
         vstack.translatesAutoresizingMaskIntoConstraints = false
         vstack.axis = .vertical
-        vstack.spacing = 10
-        vstack.alignment = .center
+        vstack.spacing = 12
+        vstack.alignment = .fill
         vstack.distribution = .fill
         view.addSubview(vstack)
-        
+
         NSLayoutConstraint.activate([
+            nickNameTextField.heightAnchor.constraint(equalToConstant: 48),
+            nickNameUpdateButton.heightAnchor.constraint(equalToConstant: 52),
+
             vstack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             vstack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            vstack.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            vstack.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -16)
+            vstack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16)
         ])
     }
     
@@ -95,10 +115,6 @@ final class DetailsViewController: UIViewController {
         navigationController?.popViewController(animated: true)
     }
 
-    @objc private func skipNickName() {
-        completionNickName?(nil)
-        navigationController?.popViewController(animated: true)
-    }
 }
 extension DetailsViewController: UITextFieldDelegate {
     func textField(
