@@ -83,6 +83,7 @@ final class FinalViewController: UIViewController {
     private func setupTableView() {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.dataSource = self
+        tableView.delegate = self
         tableView.separatorStyle = .singleLine
         tableView.tableFooterView = UIView()
         tableView.rowHeight = UITableView.automaticDimension
@@ -146,6 +147,17 @@ extension FinalViewController: UITableViewDataSource {
         )
 
         return cell
+    }
+}
+
+extension FinalViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        let item = items[indexPath.row]
+        if let root = navigationController?.viewControllers.first(where: { $0 is ViewController }) as? ViewController {
+            root.applyHistorySelection(from: item)
+        }
+        navigationController?.popToRootViewController(animated: true)
     }
 }
 
