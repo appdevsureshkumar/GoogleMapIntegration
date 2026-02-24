@@ -169,6 +169,11 @@ class ViewController: UIViewController {
                 let airQuality = currentAQI ?? 0
 
                 await MainActor.run {
+                    _ = LocationCache.shared.upsert(
+                        address: address,
+                        coordinate: coordinate,
+                        airQuality: airQuality
+                    )
                     onSuccess(address, airQuality, coordinate)
                 }
             } catch {
@@ -245,8 +250,8 @@ class ViewController: UIViewController {
                 guard let self else { return }
                 self.locationInfoA = (address: address, airQuality: airQuality, coordinate: coordinate)
                 self.labelA.text = address
-                self.buttonV.setTitle("Set B", for: .normal)
                 self.hasSetA = true
+                self.updateButtonTitleForState()
             }
             return
         }
@@ -256,8 +261,8 @@ class ViewController: UIViewController {
                 guard let self else { return }
                 self.locationInfoB = (address: address, airQuality: airQuality, coordinate: coordinate)
                 self.labelB.text = address
-                self.buttonV.setTitle("Book", for: .normal)
                 self.hasSetB = true
+                self.updateButtonTitleForState()
             }
             return
         }
@@ -296,12 +301,18 @@ class ViewController: UIViewController {
     }
 
     @objc private func handleLabelATap() {
-        guard let locationInfoA else { return }
+        guard let locationInfoA else {
+            showCachedLocations(for: .a)
+            return
+        }
         navigateToDetails(address: ((nicknameA == nil ? locationInfoA.address : nicknameA) ?? locationInfoA.address), airQuality: locationInfoA.airQuality, slot: .a)
     }
 
     @objc private func handleLabelBTap() {
-        guard let locationInfoB else { return }
+        guard let locationInfoB else {
+            showCachedLocations(for: .b)
+            return
+        }
         navigateToDetails(address: (nicknameB == nil ? locationInfoB.address : nicknameB) ?? locationInfoB.address, airQuality: locationInfoB.airQuality, slot: .b)
     }
 
@@ -329,6 +340,133 @@ class ViewController: UIViewController {
         navigationController?.pushViewController(viewController, animated: true)
     }
 
+    private func showCachedLocations(for slot: LocationSlot) {
+        let entries = LocationCache.shared.allEntries()
+        guard entries.isEmpty == false else {
+            let alert = UIAlertController(
+                title: "No cached locations",
+                message: "Move the map and set a location first.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+
+        let viewController = CachedLocationsViewController(entries: entries)
+        viewController.onSelectEntry = { [weak self] entry in
+            self?.applyCachedEntry(entry, to: slot)
+        }
+        navigationController?.pushViewController(viewController, animated: true)
+    }
+
+    private func applyCachedEntry(_ entry: LocationCache.Entry, to slot: LocationSlot) {
+        switch slot {
+        case .a:
+            locationInfoA = (address: entry.address, airQuality: entry.airQuality, coordinate: entry.coordinate)
+            labelA.text = entry.address
+            hasSetA = true
+        case .b:
+            locationInfoB = (address: entry.address, airQuality: entry.airQuality, coordinate: entry.coordinate)
+            labelB.text = entry.address
+            hasSetB = true
+        }
+        updateButtonTitleForState()
+    }
+
+    private func updateButtonTitleForState() {
+        if hasSetA == false && hasSetB == false {
+            buttonV.setTitle("V", for: .normal)
+            return
+        }
+        if hasSetA == false && hasSetB == true {
+            buttonV.setTitle("Set A", for: .normal)
+            return
+        }
+        if hasSetA == true && hasSetB == false {
+            buttonV.setTitle("Set B", for: .normal)
+            return
+        }
+        buttonV.setTitle("Book", for: .normal)
+    }
+
+    private func refreshAirQualityForSelectedLocations() {
+        if let infoA = locationInfoA {
+            Task { [weak self] in
+                guard let self else { return }
+                do {
+                    let aqi = try await airQualityService.fetchAQI(for: infoA.coordinate)
+                    await MainActor.run {
+                        self.locationInfoA?.airQuality = aqi
+                        _ = LocationCache.shared.upsert(
+                            address: infoA.address,
+                            coordinate: infoA.coordinate,
+                            airQuality: aqi
+                        )
+                    }
+                } catch {
+                    
+                }
+            }
+        }
+
+        if let infoB = locationInfoB {
+            Task { [weak self] in
+                guard let self else { return }
+                do {
+                    let aqi = try await airQualityService.fetchAQI(for: infoB.coordinate)
+                    await MainActor.run {
+                        self.locationInfoB?.airQuality = aqi
+                        _ = LocationCache.shared.upsert(
+                            address: infoB.address,
+                            coordinate: infoB.coordinate,
+                            airQuality: aqi
+                        )
+                    }
+                } catch {
+                    
+                }
+            }
+        }
+    }
+
+    func applyHistorySelection(from item: UserUsageHistory.BookItemResponse) {
+        shouldResetOnAppear = false
+        locationInfoA = (
+            address: item.locationA.name,
+            airQuality: item.locationA.aqi,
+            coordinate: CLLocationCoordinate2D(
+                latitude: item.locationA.latitude,
+                longitude: item.locationA.longitude
+            )
+        )
+        locationInfoB = (
+            address: item.locationB.name,
+            airQuality: item.locationB.aqi,
+            coordinate: CLLocationCoordinate2D(
+                latitude: item.locationB.latitude,
+                longitude: item.locationB.longitude
+            )
+        )
+
+        labelA.text = item.locationA.name
+        labelB.text = item.locationB.name
+        hasSetA = true
+        hasSetB = true
+        updateButtonTitleForState()
+        _ = LocationCache.shared.upsert(
+            address: item.locationA.name,
+            coordinate: locationInfoA?.coordinate ?? CLLocationCoordinate2D(),
+            airQuality: item.locationA.aqi
+        )
+        _ = LocationCache.shared.upsert(
+            address: item.locationB.name,
+            coordinate: locationInfoB?.coordinate ?? CLLocationCoordinate2D(),
+            airQuality: item.locationB.aqi
+        )
+        refreshAirQualityForSelectedLocations()
+    }
+
     private func resetSelections() {
         locationInfoA = nil
         locationInfoB = nil
@@ -338,7 +476,7 @@ class ViewController: UIViewController {
         hasSetB = false
         labelA.text = "A Label"
         labelB.text = "B Label"
-        buttonV.setTitle("V", for: .normal)
+        updateButtonTitleForState()
     }
 }
 
