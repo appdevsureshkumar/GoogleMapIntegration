@@ -36,14 +36,6 @@
 		93DB13302F45C2660033EDD4 /* TATATask.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TATATask.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		93DB13322F45C2660033EDD4 /* TATATask */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = TATATask;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
-
 /* Begin PBXFrameworksBuildPhase section */
 		93DB132D2F45C2660033EDD4 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -62,7 +54,6 @@
 			children = (
 				932DAD572F45FBF200397B5D /* AppDelegate.swift */,
 				932DAD5C2F45FBF200397B5D /* SceneDelegate.swift */,
-				932DAD592F45FBF200397B5D /* Info.plist */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -99,12 +90,12 @@
 		93DB13272F45C2660033EDD4 = {
 			isa = PBXGroup;
 			children = (
-				93DB13322F45C2660033EDD4 /* TATATask */,
 				93DB13312F45C2660033EDD4 /* Products */,
 				932DAD6F2F463ED200397B5D /* App */,
 				932DAD702F463ED200397B5D /* Services */,
 				932DAD712F463ED200397B5D /* ViewControllers */,
 				932DAD722F463ED200397B5D /* Resources */,
+				932DAD592F45FBF200397B5D /* Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -130,9 +121,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				93DB13322F45C2660033EDD4 /* TATATask */,
 			);
 			name = TATATask;
 			packageProductDependencies = (
@@ -240,7 +228,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = CZDWGH5UX2;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = TATATask/Info.plist;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -271,7 +259,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = CZDWGH5UX2;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = TATATask/Info.plist;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";

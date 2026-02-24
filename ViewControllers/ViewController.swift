@@ -95,10 +95,10 @@ class ViewController: UIViewController {
     }
 
     private func setupLocationMarker() {
-        let pinImageView = UIImageView(image: UIImage(systemName: "mappin.circle.fill"))
+        let pinImageView = UIImageView(image: UIImage(named: "icon-pin"))
         pinImageView.tintColor = .systemRed
         pinImageView.contentMode = .scaleAspectFit
-        pinImageView.frame = CGRect(x: 0, y: 0, width: 40, height: 40)
+        pinImageView.frame = CGRect(x: 0, y: 0, width: 32, height: 54)
 
         locationMarker.iconView = pinImageView
         locationMarker.groundAnchor = CGPoint(x: 0.5, y: 1.0) // Bottom center
