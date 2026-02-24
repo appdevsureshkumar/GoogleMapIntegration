@@ -16,6 +16,8 @@
 		932DAD682F45FC3900397B5D /* DetailsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 932DAD672F45FC3900397B5D /* DetailsViewController.swift */; };
 		932DAD6C2F46279700397B5D /* BookDetailsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 932DAD6B2F46279700397B5D /* BookDetailsViewController.swift */; };
 		932DAD6E2F46279D00397B5D /* FinalViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 932DAD6D2F46279D00397B5D /* FinalViewController.swift */; };
+		9334B2CD2F4DAB6100AFC57F /* LocationCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9334B2CC2F4DAB6100AFC57F /* LocationCache.swift */; };
+		9334B2CF2F4DAB7400AFC57F /* CachedLocationsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9334B2CE2F4DAB7400AFC57F /* CachedLocationsViewController.swift */; };
 		93CF055B2F45C3FB006E3343 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 93CF055A2F45C3FB006E3343 /* Alamofire */; };
 		93CF055E2F45C47C006E3343 /* GoogleMaps in Frameworks */ = {isa = PBXBuildFile; productRef = 93CF055D2F45C47C006E3343 /* GoogleMaps */; };
 		93CF05602F45DA94006E3343 /* AirQualityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93CF055F2F45DA94006E3343 /* AirQualityService.swift */; };
@@ -32,6 +34,8 @@
 		932DAD672F45FC3900397B5D /* DetailsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsViewController.swift; sourceTree = "<group>"; };
 		932DAD6B2F46279700397B5D /* BookDetailsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookDetailsViewController.swift; sourceTree = "<group>"; };
 		932DAD6D2F46279D00397B5D /* FinalViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinalViewController.swift; sourceTree = "<group>"; };
+		9334B2CC2F4DAB6100AFC57F /* LocationCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationCache.swift; sourceTree = "<group>"; };
+		9334B2CE2F4DAB7400AFC57F /* CachedLocationsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachedLocationsViewController.swift; sourceTree = "<group>"; };
 		93CF055F2F45DA94006E3343 /* AirQualityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirQualityService.swift; sourceTree = "<group>"; };
 		93DB13302F45C2660033EDD4 /* TATATask.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TATATask.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -62,6 +66,7 @@
 			isa = PBXGroup;
 			children = (
 				93CF055F2F45DA94006E3343 /* AirQualityService.swift */,
+				9334B2CC2F4DAB6100AFC57F /* LocationCache.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -73,6 +78,7 @@
 				932DAD6D2F46279D00397B5D /* FinalViewController.swift */,
 				932DAD5D2F45FBF200397B5D /* ViewController.swift */,
 				932DAD672F45FC3900397B5D /* DetailsViewController.swift */,
+				9334B2CE2F4DAB7400AFC57F /* CachedLocationsViewController.swift */,
 			);
 			path = ViewControllers;
 			sourceTree = "<group>";
@@ -190,7 +196,9 @@
 				93CF05602F45DA94006E3343 /* AirQualityService.swift in Sources */,
 				932DAD6E2F46279D00397B5D /* FinalViewController.swift in Sources */,
 				932DAD642F45FBF200397B5D /* AppDelegate.swift in Sources */,
+				9334B2CD2F4DAB6100AFC57F /* LocationCache.swift in Sources */,
 				932DAD652F45FBF200397B5D /* SceneDelegate.swift in Sources */,
+				9334B2CF2F4DAB7400AFC57F /* CachedLocationsViewController.swift in Sources */,
 				932DAD662F45FBF200397B5D /* ViewController.swift in Sources */,
 				932DAD6C2F46279700397B5D /* BookDetailsViewController.swift in Sources */,
 				932DAD682F45FC3900397B5D /* DetailsViewController.swift in Sources */,
