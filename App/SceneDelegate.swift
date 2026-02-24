@@ -23,7 +23,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         GMSServices.provideAPIKey("AIzaSyDqekhsOtkGF8zg4Z0EkLcewPAhurJZrng")
 
         let window = UIWindow(windowScene: windowScene)
-        let navigationController = UINavigationController(rootViewController: ViewController())
+        let dependencies = AppDependencies()
+        let navigationController = UINavigationController(
+            rootViewController: ViewController(dependencies: dependencies)
+        )
         window.rootViewController = navigationController
         window.makeKeyAndVisible()
         self.window = window
@@ -60,4 +63,3 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 
 }
-

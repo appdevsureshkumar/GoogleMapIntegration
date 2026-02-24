@@ -15,9 +15,10 @@ class ViewController: UIViewController {
     private let locationMarker = GMSMarker()
     private let locationManager = CLLocationManager()
     private let airQualityLabel = PaddedLabel()
-    private let airQualityService = AirQualityService()
-    private let locationInfoService = LocationInfoService()
-    private let booksInfoService = BooksInfoService()
+    private let airQualityService: AirQualityServing
+    private let locationInfoService: LocationInfoServing
+    private let booksInfoService: BooksInfoServing
+    private let locationCache: LocationCaching
     private var lastAQILocation: CLLocation?
     private var currentAQI: Int?
     private var labelA = PaddedLabel()
@@ -66,6 +67,19 @@ class ViewController: UIViewController {
             return CGSize(width: size.width + textInsets.left + textInsets.right,
                           height: size.height + textInsets.top + textInsets.bottom)
         }
+    }
+
+    init(dependencies: AppDependencies = AppDependencies()) {
+        self.airQualityService = dependencies.airQualityService
+        self.locationInfoService = dependencies.locationInfoService
+        self.booksInfoService = dependencies.booksInfoService
+        self.locationCache = dependencies.locationCache
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 
     override func viewDidLoad() {
@@ -169,7 +183,7 @@ class ViewController: UIViewController {
                 let airQuality = currentAQI ?? 0
 
                 await MainActor.run {
-                    _ = LocationCache.shared.upsert(
+                    _ = locationCache.upsert(
                         address: address,
                         coordinate: coordinate,
                         airQuality: airQuality
@@ -341,7 +355,7 @@ class ViewController: UIViewController {
     }
 
     private func showCachedLocations(for slot: LocationSlot) {
-        let entries = LocationCache.shared.allEntries()
+        let entries = locationCache.allEntries()
         guard entries.isEmpty == false else {
             let alert = UIAlertController(
                 title: "No cached locations",
@@ -398,10 +412,10 @@ class ViewController: UIViewController {
                     let aqi = try await airQualityService.fetchAQI(for: infoA.coordinate)
                     await MainActor.run {
                         self.locationInfoA?.airQuality = aqi
-                        _ = LocationCache.shared.upsert(
-                            address: infoA.address,
-                            coordinate: infoA.coordinate,
-                            airQuality: aqi
+                    _ = locationCache.upsert(
+                        address: infoA.address,
+                        coordinate: infoA.coordinate,
+                        airQuality: aqi
                         )
                     }
                 } catch {
@@ -417,7 +431,7 @@ class ViewController: UIViewController {
                     let aqi = try await airQualityService.fetchAQI(for: infoB.coordinate)
                     await MainActor.run {
                         self.locationInfoB?.airQuality = aqi
-                        _ = LocationCache.shared.upsert(
+                        _ = locationCache.upsert(
                             address: infoB.address,
                             coordinate: infoB.coordinate,
                             airQuality: aqi
@@ -454,12 +468,12 @@ class ViewController: UIViewController {
         hasSetA = true
         hasSetB = true
         updateButtonTitleForState()
-        _ = LocationCache.shared.upsert(
+        _ = locationCache.upsert(
             address: item.locationA.name,
             coordinate: locationInfoA?.coordinate ?? CLLocationCoordinate2D(),
             airQuality: item.locationA.aqi
         )
-        _ = LocationCache.shared.upsert(
+        _ = locationCache.upsert(
             address: item.locationB.name,
             coordinate: locationInfoB?.coordinate ?? CLLocationCoordinate2D(),
             airQuality: item.locationB.aqi
